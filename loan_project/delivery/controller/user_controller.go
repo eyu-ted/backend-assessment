@@ -151,7 +151,7 @@ func (uc *UserHandler) PasswordResetRequest(c *gin.Context) {
 		SMTPPort:    587,
 		SenderEmail: "eyuted81619@gmail.com",
 		SenderName:  "Your Eyoelll",
-		SenderPass:  "bdma dfvq tzqw vizv",
+		SenderPass:  "bdda hfvh tzqq rinv",
 	}
 	err = utils.SendPasswordResetEmail(emailConfig, req.Email, token)
 	if err != nil {
