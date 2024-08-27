@@ -1,4 +1,3 @@
-// usecase/user_usecase.go
 package usecase
 
 import (
@@ -84,7 +83,7 @@ func (u *UserUsecase) LoginUser(email, password string) (string, string, error) 
 	}
 
 	// Generate JWT tokens
-	accessToken, err := utils.GenerateJWT(user, "access", 15*time.Minute)
+	accessToken, err := utils.GenerateJWT(user, "access", 2*time.Hour)
 	if err != nil {
 		return "", "", err
 	}
@@ -132,23 +131,28 @@ func (u *UserUsecase) GetUserProfile(userID string) (*domain.User, error) {
 
 // usecase/user_usecase.go
 func (u *UserUsecase) ResetPassword(token, newPassword string) error {
-	claims, err := utils.ParseJWT(token) // Implement token verification
+	// Verify the token
+	claims, err := utils.ParseJWT(token)
 	if err != nil {
 		return err
 	}
 
+	// Retrieve user by email
 	user, err := u.userRepo.GetUserByEmail(claims.Email)
 	if err != nil {
 		return err
 	}
 
+	// Hash the new password
 	hashedPassword, err := utils.HashPassword(newPassword)
 	if err != nil {
 		return err
 	}
 
+	// Update user password
 	user.Password = hashedPassword
 
+	// Save the updated user information to the database
 	err = u.userRepo.UpdateUser(user)
 	if err != nil {
 		return err

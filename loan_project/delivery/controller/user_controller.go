@@ -140,12 +140,14 @@ func (uc *UserHandler) PasswordResetRequest(c *gin.Context) {
 		return
 	}
 
+	// Generate a JWT token with a 60-minute expiry for password reset.
 	token, err := utils.GenerateJWT(&domain.User{Email: req.Email}, "reset", 60*time.Minute)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
+	// Define the email configuration for sending the password reset email.
 	emailConfig := utils.EmailConfig{
 		SMTPHost:    "smtp.gmail.com",
 		SMTPPort:    587,
@@ -153,6 +155,8 @@ func (uc *UserHandler) PasswordResetRequest(c *gin.Context) {
 		SenderName:  "Your Eyoelll",
 		SenderPass:  "bdma dfvq tzqw vizv",
 	}
+
+	// Send the password reset email.
 	err = utils.SendPasswordResetEmail(emailConfig, req.Email, token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email"})
@@ -162,6 +166,7 @@ func (uc *UserHandler) PasswordResetRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Password reset link sent"})
 }
 
+// ResetPassword handles the actual password reset request.
 func (h *UserHandler) ResetPassword(c *gin.Context) {
 	var req struct {
 		Token       string `json:"token" binding:"required"`
@@ -173,6 +178,7 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
+	// Call usecase to reset password
 	err := h.userUsecase.ResetPassword(req.Token, req.NewPassword)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

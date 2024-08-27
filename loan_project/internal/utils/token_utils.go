@@ -2,10 +2,12 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"loan-tracker/domain"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	// jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,15 +24,23 @@ func GenerateToken(email string) (string, error) {
 }
 
 func GenerateJWT(user *domain.User, tokenType string, duration time.Duration) (string, error) {
-	claims := jwt.MapClaims{
-		"email": user.Email,
-		"type":  tokenType,
-		"role":  user.Role,
-		"exp":   time.Now().Add(duration).Unix(),
+	exp := time.Now().Add(time.Hour * duration).Unix()
+	claims := domain.JwtClaims{
+		Email:  user.Email,
+		Type:   tokenType,
+		Role:   user.Role,
+		UserID: user.ID, // Convert ObjectID to string
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: exp,
+		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secretKey))
+	signedToken, err := token.SignedString([]byte(secretKey))
+	if err != nil {
+		return "", err
+	}
+	return signedToken, nil
 }
 
 func ValidateToken(tokenStr, email string) (bool, error) {
@@ -41,9 +51,9 @@ func ValidateToken(tokenStr, email string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
+	fmt.Println(token)
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		if claims["email"] == email {
+		if claims["Email"] == email {
 			return true, nil
 		}
 	}
@@ -53,10 +63,17 @@ func ValidateToken(tokenStr, email string) (bool, error) {
 
 func ParseJWT(token string) (*domain.JwtClaims, error) {
 	claims := &domain.JwtClaims{}
-	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secretKey), nil
 	})
-	return claims, err
+	if err != nil {
+		return nil, err
+	}
+	if !tkn.Valid {
+		return nil, errors.New("invalid token")
+	}
+	return claims, nil
+
 }
 
 func HashPassword(password string) (string, error) {

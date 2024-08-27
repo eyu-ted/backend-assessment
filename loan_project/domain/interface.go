@@ -3,7 +3,7 @@ package domain
 import (
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -38,8 +38,11 @@ type User struct {
 }
 
 type JwtClaims struct {
+	UserID primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+
 	Email string `json:"email"`
 	Type  string `json:"type"`
-	Role string `json:"role"`
+	Role  string `json:"role"`
+
 	jwt.StandardClaims
 }

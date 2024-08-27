@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"loan-tracker/internal/utils"
 	"net/http"
 	"strings"
@@ -24,6 +25,7 @@ func AuthMidd(c *gin.Context) {
 	}
 
 	claims, err := utils.ParseJWT(tokenString)
+	fmt.Println(claims)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		c.Abort()

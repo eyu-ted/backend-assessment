@@ -10,8 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-// SetupRouter initializes all routes
 func SetupUserRouter(db *mongo.Database) *gin.Engine {
 	r := gin.Default()
 

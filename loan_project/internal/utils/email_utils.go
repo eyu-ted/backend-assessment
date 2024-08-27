@@ -45,21 +45,20 @@ func SendVerificationEmail(emailConfig EmailConfig, recipientEmail, token string
 func SendPasswordResetEmail(emailConfig EmailConfig, recipientEmail, token string) error {
 	mailer := mail.NewMessage()
 
-	
+	// Set the email headers
 	mailer.SetHeader("From", emailConfig.SenderName+" <"+emailConfig.SenderEmail+">")
-
 	mailer.SetHeader("To", recipientEmail)
-
 	mailer.SetHeader("Subject", "Password Reset Request")
 
-
+	// Create the body of the email with the reset link
 	body := "Click the link below to reset your password:\n\n"
 	body += "http://localhost:8080/users/password-update?token=" + token + "&email=" + recipientEmail
 	mailer.SetBody("text/plain", body)
 
+	// Set up the mailer dialer
 	dialer := mail.NewDialer(emailConfig.SMTPHost, emailConfig.SMTPPort, emailConfig.SenderEmail, emailConfig.SenderPass)
 
-
+	// Send the email
 	if err := dialer.DialAndSend(mailer); err != nil {
 		log.Printf("Error sending email: %v", err)
 		return err
