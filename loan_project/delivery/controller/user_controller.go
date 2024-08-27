@@ -8,7 +8,12 @@ import (
 	"loan-tracker/internal/utils"
 	"loan-tracker/usecase"
 
+	"log"
+	"os"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 type UserHandler struct {
@@ -37,13 +42,22 @@ func (h *UserHandler) RegisterUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
 
+	mongoURI := os.Getenv("MONGO_URI")
+	if mongoURI == "" {
+		log.Fatal("MONGO_URI is not set in the environment")
+	}
+
+	smtpPort, _ := strconv.Atoi(os.Getenv("SMTPPort"))
 	emailConfig := utils.EmailConfig{
-		SMTPHost:    "smtp.gmail.com",
-		SMTPPort:    587,
-		SenderEmail: "eyuted81619@gmail.com",
-		SenderName:  "Your Eyoelll",
-		SenderPass:  "bdma dfvq tzqw vizv",
+		SMTPHost:    os.Getenv("SMTPHost"),
+		SMTPPort:    smtpPort,
+		SenderEmail: os.Getenv("SenderEmail"),
+		SenderName:  os.Getenv("SenderName"),
+		SenderPass:  os.Getenv("SenderPass"),
 	}
 
 	if err := utils.SendVerificationEmail(emailConfig, user.Email, token); err != nil {
